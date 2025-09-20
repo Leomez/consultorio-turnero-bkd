@@ -9,7 +9,6 @@ generator client {
   // output   = "../generated/prisma"
 }
 
-
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -17,11 +16,12 @@ datasource db {
 
 model User {
   id        Int      @id @default(autoincrement())
-  nombre     String
+  nombre    String
   email     String   @unique
   password  String
   role      Role     @default(SECRETARIA)
   createdAt DateTime @default(now())
+  turnos    Turno[]  @relation("TurnosDeOdontologo") // 👈 relación inversa
 }
 
 model Paciente {
@@ -30,10 +30,32 @@ model Paciente {
   dni       String   @unique
   telefono  String?
   createdAt DateTime @default(now())
+  turnos    Turno[]  @relation("TurnosDePaciente") // 👈 relación inversa
 }
 
 enum Role {
   ADMIN
   ODONTOLOGO
   SECRETARIA
+}
+
+model Turno {
+  id     Int      @id @default(autoincrement())
+  fecha  DateTime
+  motivo String?
+  estado Estado   @default(PENDIENTE)
+
+  pacienteId Int
+  paciente   Paciente @relation("TurnosDePaciente", fields: [pacienteId], references: [id])
+
+  odontologoId Int
+  odontologo   User @relation("TurnosDeOdontologo", fields: [odontologoId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+enum Estado {
+  PENDIENTE
+  CONFIRMADO
+  CANCELADO
 }
