@@ -2,49 +2,40 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { UserService } from 'src/users/users.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
-import { Role } from '@prisma/client';
+import { Role, User } from '@prisma/client';
+
 
 @Injectable()
 export class AuthService {
-  constructor(private prisma: PrismaService, private jwtService: JwtService) {}
+  constructor(private userService: UserService, private jwtService: JwtService) {}
 
-  async register(data: RegisterDto) {
-    const { nombre, email, password, role } = data;
+  async register(data: RegisterDto) {      
 
-    // Hash de la password
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const user = await this.prisma.user.create({
-      data: {
-        nombre,
-        email,
-        password: hashedPassword,
-        role: role ?? Role.SECRETARIA, // 👈 default enum
+    const user = await this.userService.create({     
+        nombre: data.nombre,
+        email: data.email,
+        password: data.password,
+        role: data.role ?? Role.SECRETARIA, // 👈 default enum
       },
-    });
+    );
 
     return { message: 'Usuario registrado', user };
   }
 
-  async login(data: LoginDto) {
-    const { email, password } = data;
-
-    const user = await this.prisma.user.findUnique({ where: { email } });
-    if (!user) {
-      throw new UnauthorizedException('Credenciales inválidas');
+  async validateUser(email: string, password: string) {
+    const user = await this.userService.findByEmail(email);
+    if (user && await bcrypt.compare(password, user.password)) {
+      const { password, ...result } = user;
+      return result;
     }
-
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
-      throw new UnauthorizedException('Credenciales inválidas');
-    }
-
-    // Payload con sub (id), email y rol
+    return null;
+  }
+  
+  async login(user: Omit<User, 'password'>) {
     const payload = { sub: user.id, email: user.email, role: user.role };
-    const token = this.jwtService.sign(payload);
-
-    return { access_token: token };
+    return { access_token: this.jwtService.sign(payload) };
   }
 }

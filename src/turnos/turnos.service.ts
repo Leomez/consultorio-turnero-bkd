@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateTurnoDto } from './dto/create-turno.dto';
 import { UpdateTurnoDto } from './dto/update-turno.dto';
@@ -8,28 +8,29 @@ export class TurnosService {
     constructor(private prisma: PrismaService) { }
 
     async create(data: CreateTurnoDto) {
-        const existe = await this.prisma.turno.findFirst({
+        // 🔹 Validar que el odontólogo no tenga otro turno en la misma fecha/hora
+        const existingTurno = await this.prisma.turno.findFirst({
             where: {
                 odontologoId: data.odontologoId,
-                fecha: new Date(data.fecha),
+                fecha: data.fecha,
             },
         });
 
-        if (existe) {
-            throw new BadRequestException('El odontólogo ya tiene un turno en ese horario');
+        if (existingTurno) {
+            throw new BadRequestException(
+                'El odontólogo ya tiene un turno en esta fecha y hora',
+            );
         }
 
         return this.prisma.turno.create({
-            data: {
-                ...data,
-                fecha: new Date(data.fecha),
-            },
+            data: data,
+            include: { paciente: true, odontologo: true },
         });
     }
 
     // ✅ Solo turnos futuros
-    findAll() {
-        return this.prisma.turno.findMany({
+    async findAll() {
+        const turno = await this.prisma.turno.findMany({
             where: {
                 fecha: {
                     gte: new Date(), // >= hoy
@@ -38,13 +39,18 @@ export class TurnosService {
             orderBy: { fecha: 'asc' },
             include: { paciente: true, odontologo: true },
         });
+
+        return turno;
     }
 
-    findOne(id: number) {
-        return this.prisma.turno.findUnique({
+    async findOne(id: number) {
+        const turno = await this.prisma.turno.findUnique({
             where: { id },
             include: { paciente: true, odontologo: true },
         });
+
+        if (!turno) throw new NotFoundException('Turno no encontrado');
+        return turno;
     }
 
     // ✅ Buscar por fecha (ej: "2025-09-12")
@@ -69,10 +75,30 @@ export class TurnosService {
     }
 
 
-    update(id: number, data: UpdateTurnoDto) {
+    async update(id: number, data: UpdateTurnoDto) {
+        // 🔹 Validar que el odontólogo no se solape si cambia fecha/hora
+        if (data.fecha && data.odontologoId) {
+            const conflict = await this.prisma.turno.findFirst({
+                where: {
+                    odontologoId: data.odontologoId,
+                    fecha: data.fecha,
+                    NOT: { id },
+                },
+            });
+            if (conflict) {
+                throw new BadRequestException(
+                    'El odontólogo ya tiene un turno en esta fecha y hora',
+                );
+            }
+        }
+
         return this.prisma.turno.update({
             where: { id },
-            data,
+            data: {
+                ...data,
+                fecha: data.fecha ? new Date(data.fecha) : undefined,
+            },
+            include: { paciente: true, odontologo: true },
         });
     }
 
