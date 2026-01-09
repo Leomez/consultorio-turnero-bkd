@@ -415,6 +415,145 @@
                 }
             },
             "response": []
+        },
+        {
+            "name": "Historia Clinica - Create",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"pacienteId\": 1,\n}"
+                },
+                "url": {
+                    "raw": "http://localhost:3000/historias-clinicas",
+                    "protocol": "http",
+                    "host": [
+                        "localhost"
+                    ],
+                    "port": "3000",
+                    "path": [
+                        "historias-clinicas"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Historia Clinica - Get By Paciente",
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "http://localhost:3000/historias-clinicas/paciente/1",
+                    "protocol": "http",
+                    "host": [
+                        "localhost"
+                    ],
+                    "port": "3000",
+                    "path": [
+                        "historias-clinicas",
+                        "paciente",
+                        "1"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Historia Clínica - Agregar Registro",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"diagnostico\": \"Caries en pieza 2.6\",\n  \"tratamiento\": \"Obturación con resina compuesta\",\n  \"observaciones\": \"Paciente refiere sensibilidad al frío\",\n  \"historiaId\": 1,\n  \"odontologoId\": 2\n}"
+                },
+                "url": {
+                    "raw": "http://localhost:3000/historias-registros",
+                    "protocol": "http",
+                    "host": [
+                        "localhost"
+                    ],
+                    "port": "3000",
+                    "path": [
+                        "historias-registros"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Historia Clinica - Get All Registro",
+            "request": {
+                "method": "GET",
+                "url": {
+                    "raw": "http://localhost:3000/historias-registros/historia/1",
+                    "protocol": "http",
+                    "host": [
+                        "localhost"
+                    ],
+                    "port": "3000",
+                    "path": [
+                        "historias-registros",
+                        "historia",
+                        "1"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Historia Clinica - Get One registro",
+            "request": {
+                "method": "GET",
+                "url": {
+                    "raw": "http://localhost:3000/historias-registros/1",
+                    "protocol": "http",
+                    "host": [
+                        "localhost"
+                    ],
+                    "port": "3000",
+                    "path": [
+                        "historias-registros",
+                        "1"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Historia Clinica - Update Registro",
+            "request": {
+                "method": "PATCH",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"observaciones\": \"Paciente sin molestias posteriores al tratamiento\"\n}"
+                },
+                "url": {
+                    "raw": "http://localhost:3000/historias-registros/1",
+                    "protocol": "http",
+                    "host": [
+                        "localhost"
+                    ],
+                    "port": "3000",
+                    "path": [
+                        "historias-registros",
+                        "1"
+                    ]
+                }
+            }
         }
     ]
 }
